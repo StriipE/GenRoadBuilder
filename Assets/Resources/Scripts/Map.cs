@@ -9,7 +9,7 @@ public class Map : MonoBehaviour {
 
   
     // Use this for initialization
-    void Start () {
+    void Awake () {
 
         createMap(width, length);
         addStartBlock(13, 3);
