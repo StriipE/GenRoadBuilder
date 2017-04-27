@@ -21,4 +21,8 @@ public class Node : MonoBehaviour
         isEmpty = false;
     }
 
+    public void freeNode()
+    {
+        isEmpty = true;
+    }
 }

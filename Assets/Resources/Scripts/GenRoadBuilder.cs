@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -13,6 +14,7 @@ public class GenRoadBuilder : MonoBehaviour
     private int[,] endPos;
 
     public int maxRoadBlocks;
+    private int population = 0;
     public GameObject mapGO;
     private Map map;
 
@@ -29,6 +31,7 @@ public class GenRoadBuilder : MonoBehaviour
         road = new GameObject[map.length, map.width];
 
         StartCoroutine(BuildRoad());
+        BuildRoad();
     }
 
     // Update is called once per frame
@@ -39,7 +42,7 @@ public class GenRoadBuilder : MonoBehaviour
 
     public IEnumerator BuildRoad()
     {
-       // while (true)
+        while (true)
         {
             startPos = new int[1, 2] { { Convert.ToInt32(start.transform.position.x / 4.5f), Convert.ToInt32(start.transform.position.z / 4.5f) } };
             endPos = new int[1, 2] { { Convert.ToInt32(end.transform.position.x / 4.5f), Convert.ToInt32(end.transform.position.z / 4.5f) } };
@@ -50,14 +53,14 @@ public class GenRoadBuilder : MonoBehaviour
             for (int i = 0; i < maxRoadBlocks + 1; i++)
             {
                 List<Node> nodeNeighbours = findNodeNeighbours(currentPos[0, 0], currentPos[0, 1]);
-                Debug.Log(nodeNeighbours.Count);
+
                 if (nodeNeighbours.Count > 0)
                 {
                     int randomIndex = UnityEngine.Random.Range(0, nodeNeighbours.Count);
                     Node selectedNode = nodeNeighbours[randomIndex];
                     currentPos = new int[1, 2] { { Convert.ToInt32(selectedNode.transform.position.x / 4.5f), Convert.ToInt32(selectedNode.transform.position.z / 4.5f) } };
                     addBlock(currentPos[0, 0], currentPos[0, 1]);
-                    yield return new WaitForSeconds(0.05f);
+                    yield return new WaitForSeconds(0.001f);
                 }
                 else
                 {
@@ -66,6 +69,9 @@ public class GenRoadBuilder : MonoBehaviour
                 }
             }
 
+            population++;
+            showPopulation();
+            destroyRoad();
         }
     }
 
@@ -165,7 +171,20 @@ public class GenRoadBuilder : MonoBehaviour
 
         for (var i = 0; i < roadBlocks.Length; i++)
         {
+            GameObject block = roadBlocks[i];
+
+            currentPos = new int[1, 2] { { Convert.ToInt32(block.transform.position.x / 4.5f), Convert.ToInt32(block.transform.position.z / 4.5f) } };
+            Node node = map.map[currentPos[0,0], currentPos[0, 1]].GetComponent<Node>();
+            node.freeNode();
             Destroy(roadBlocks[i]);
         }
     }
+
+    public void showPopulation()
+    {
+        GameObject populationGO = GameObject.Find("Population");
+        Text populationText = populationGO.GetComponent<Text>();
+        populationText.text = population.ToString();
+    }
+
 }
