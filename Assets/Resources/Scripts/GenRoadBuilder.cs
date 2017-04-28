@@ -6,12 +6,15 @@ using System;
 
 public class GenRoadBuilder : MonoBehaviour
 {
+    private const int X = 0;
+    private const int Y = 1;
+
     private GameObject start;
     private GameObject end;
 
-    private int[,] startPos;
-    private int[,] currentPos;
-    private int[,] endPos;
+    private int[] startPos;
+    private int[] currentPos;
+    private int[] endPos;
 
     public int maxRoadBlocks;
     private int population = 0;
@@ -44,28 +47,24 @@ public class GenRoadBuilder : MonoBehaviour
     {
         while (true)
         {
-            startPos = new int[1, 2] { { Convert.ToInt32(start.transform.position.x / 4.5f), Convert.ToInt32(start.transform.position.z / 4.5f) } };
-            endPos = new int[1, 2] { { Convert.ToInt32(end.transform.position.x / 4.5f), Convert.ToInt32(end.transform.position.z / 4.5f) } };
-            currentPos = startPos;
+            setUpStartCoordinates(); // Sets up current position at the start positon
+            addBlockAtCurrentPos(); // Creating the block at starting position
 
-            addBlock(currentPos[0, 0], currentPos[0, 1]);
-
-            for (int i = 0; i < maxRoadBlocks + 1; i++)
+            for (int i = 0; i < maxRoadBlocks + 1; i++) // Maximum road blocks to build are set in editor
             {
-                List<Node> nodeNeighbours = findNodeNeighbours(currentPos[0, 0], currentPos[0, 1]);
+                List<Node> nodeNeighbours = findNodeNeighboursOfCurrentPos();
 
                 if (nodeNeighbours.Count > 0)
                 {
-                    int randomIndex = UnityEngine.Random.Range(0, nodeNeighbours.Count);
-                    Node selectedNode = nodeNeighbours[randomIndex];
-                    currentPos = new int[1, 2] { { Convert.ToInt32(selectedNode.transform.position.x / 4.5f), Convert.ToInt32(selectedNode.transform.position.z / 4.5f) } };
-                    addBlock(currentPos[0, 0], currentPos[0, 1]);
+                    Node selectedNode = findRandomNode(nodeNeighbours);
+                    currentPos = findNodeCoordinates(selectedNode.GetComponent<Node>());
+                    addBlockAtCurrentPos();
                     yield return new WaitForSeconds(0.001f);
                 }
                 else
                 {
                     destroyRoad();
-                    i = maxRoadBlocks;
+                    i = maxRoadBlocks + 1;
                 }
             }
 
@@ -75,7 +74,12 @@ public class GenRoadBuilder : MonoBehaviour
         }
     }
 
-    public void addBlock(int x, int y)
+    private void setUpStartCoordinates()
+    {
+        startPos = findNodeCoordinates(start.GetComponent<Node>());
+        currentPos = startPos;
+    }
+    private void addBlock(int x, int y)
     {
         if (nodeIsEmpty(x, y))
         {
@@ -83,13 +87,15 @@ public class GenRoadBuilder : MonoBehaviour
             map.map[x, y].GetComponent<Node>().setNode();
         }
     }
-
-    public bool nodeIsEmpty(int x, int y)
+    private void addBlockAtCurrentPos()
+    {
+        addBlock(currentPos[X], currentPos[Y]); 
+    }
+    private bool nodeIsEmpty(int x, int y)
     {
         return map.map[x, y].GetComponent<Node>().isEmpty;
     }
-
-    public List<Node> findNodeNeighbours(int x, int y)
+    private List<Node> findNodeNeighbours(int x, int y)
     {
         List<Node> neighbours = new List<Node>();
 
@@ -107,8 +113,11 @@ public class GenRoadBuilder : MonoBehaviour
 
         return neighbours;
     }
-
-    public Node findLeftNode(int x, int y)
+    private List<Node> findNodeNeighboursOfCurrentPos()
+    {
+       return findNodeNeighbours(currentPos[X], currentPos[Y]);
+    }
+    private Node findLeftNode(int x, int y)
     {
         if (x - 1 >= 0)
         {
@@ -122,7 +131,7 @@ public class GenRoadBuilder : MonoBehaviour
         else
             return null;
     }
-    public Node findTopNode(int x, int y)
+    private Node findTopNode(int x, int y)
     {
         if (y - 1 >= 0)
         {
@@ -136,7 +145,7 @@ public class GenRoadBuilder : MonoBehaviour
         else
             return null;
     }
-    public Node findRightNode(int x, int y)
+    private Node findRightNode(int x, int y)
     {
         if (x + 1 < map.width)
         {
@@ -150,7 +159,7 @@ public class GenRoadBuilder : MonoBehaviour
         else
             return null;
     }
-    public Node findBottomNode(int x, int y)
+    private Node findBottomNode(int x, int y)
     {
         if (y + 1 < map.length)
         {
@@ -164,8 +173,17 @@ public class GenRoadBuilder : MonoBehaviour
         else
             return null;
     }
-
-    public void destroyRoad()
+    private Node findRandomNode(List<Node> nodes)
+    {
+        int randomIndex = UnityEngine.Random.Range(0, nodes.Count);
+        Node selectedNode = nodes[randomIndex];
+        return selectedNode;
+    }
+    private int[] findNodeCoordinates(Node node)
+    {
+        return new int[2] { Convert.ToInt32(node.transform.position.x / 4.5f), Convert.ToInt32(node.transform.position.z / 4.5f) };
+    }
+    private void destroyRoad()
     {
         var roadBlocks = GameObject.FindGameObjectsWithTag("Road");
 
@@ -173,13 +191,12 @@ public class GenRoadBuilder : MonoBehaviour
         {
             GameObject block = roadBlocks[i];
 
-            currentPos = new int[1, 2] { { Convert.ToInt32(block.transform.position.x / 4.5f), Convert.ToInt32(block.transform.position.z / 4.5f) } };
-            Node node = map.map[currentPos[0,0], currentPos[0, 1]].GetComponent<Node>();
+            currentPos = new int[2] { Convert.ToInt32(block.transform.position.x / 4.5f), Convert.ToInt32(block.transform.position.z / 4.5f) };
+            Node node = map.map[currentPos[0], currentPos[1]].GetComponent<Node>();
             node.freeNode();
             Destroy(roadBlocks[i]);
         }
     }
-
     public void showPopulation()
     {
         GameObject populationGO = GameObject.Find("Population");
