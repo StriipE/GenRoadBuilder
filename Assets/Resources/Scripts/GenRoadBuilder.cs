@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using Assets.Resources.Scripts;
 
 public enum Direction
 {
@@ -31,7 +32,7 @@ public class GenRoadBuilder : MonoBehaviour
     public GameObject mapGO;
     private Map map;
 
-    public GameObject[,] road;
+    public Road road;
 
     // Use this for initialization
     void Start()
@@ -41,7 +42,7 @@ public class GenRoadBuilder : MonoBehaviour
 
         map = mapGO.GetComponent<Map>();
 
-        road = new GameObject[map.length, map.width];
+        road = new Road(map.length, map.width);
 
         StartCoroutine(BuildRoad());
         BuildRoad();
@@ -67,11 +68,12 @@ public class GenRoadBuilder : MonoBehaviour
                 if (nodeNeighbours.Count > 0)
                 {
                     Node selectedNode = findRandomNode(nodeNeighbours);
-                    Direction nextDirection = getDirectionOfNextNode( selectedNode );
-                    setMaterialFromNextDirection(nextDirection);
-                    previousDirection = nextDirection;
+
+                    handleCurrentBlockDrawingAccordingToNextDirection(selectedNode); 
+
                     currentPos = selectedNode.GetComponent<Node>().getCoordinates();
                     addBlockAtCurrentPos();
+
                     yield return new WaitForSeconds(0.2f);
                 }
                 else
@@ -81,11 +83,13 @@ public class GenRoadBuilder : MonoBehaviour
                 }
             }
 
+            Debug.Log(road.getRoadLength());
             population++;
             showPopulation();
             destroyRoad();
         }
     }
+
     private void setUpStartCoordinates()
     {
         startPos = start.GetComponent<Node>().getCoordinates();
@@ -95,7 +99,8 @@ public class GenRoadBuilder : MonoBehaviour
     {
         if (nodeIsEmpty(x, y))
         {
-            road[x, y] = (GameObject)Instantiate(Resources.Load(@"Prefabs/Road"), new Vector3(4.5f * x, 0.5f, 4.5f * y), Quaternion.identity);
+            road.RoadBlocks[x, y] = (GameObject)Instantiate(Resources.Load(@"Prefabs/Road"), new Vector3(4.5f * x, 0.5f, 4.5f * y), Quaternion.identity);
+            road.incrementRoadLength();
             map.map[x, y].GetComponent<Node>().setNode();
         }
     }
@@ -232,7 +237,6 @@ public class GenRoadBuilder : MonoBehaviour
 
         return directionOfNextNode;
     }
-
     private void setMaterialFromNextDirection(Direction nextDirection)
     {
         Material material;
@@ -240,7 +244,7 @@ public class GenRoadBuilder : MonoBehaviour
         if (previousDirection == nextDirection)
         {
             material = Resources.Load("Materials/Straight", typeof(Material)) as Material;
-            road[currentPos[X], currentPos[Y]].GetComponent<Renderer>().material = material;
+            road.RoadBlocks[currentPos[X], currentPos[Y]].GetComponent<Renderer>().material = material;
 
             if (nextDirection == Direction.UP || nextDirection == Direction.DOWN)
                 rotateRoadAtCurrentPos(90);
@@ -249,7 +253,7 @@ public class GenRoadBuilder : MonoBehaviour
         else
         {
             material = Resources.Load("Materials/Turn", typeof(Material)) as Material;
-            road[currentPos[X], currentPos[Y]].GetComponent<Renderer>().material = material;
+            road.RoadBlocks[currentPos[X], currentPos[Y]].GetComponent<Renderer>().material = material;
 
             if (previousDirection == Direction.LEFT)
             {
@@ -282,9 +286,16 @@ public class GenRoadBuilder : MonoBehaviour
         }
 
     }
-
     public void rotateRoadAtCurrentPos(int degrees)
     {
-        road[currentPos[X], currentPos[Y]].transform.Rotate(new Vector3(0, degrees, 0));
+        road.RoadBlocks[currentPos[X], currentPos[Y]].transform.Rotate(new Vector3(0, degrees, 0));
     }
+    public void handleCurrentBlockDrawingAccordingToNextDirection(Node nextNode)
+    { 
+        Direction nextDirection = getDirectionOfNextNode(nextNode);
+        setMaterialFromNextDirection(nextDirection);
+        previousDirection = nextDirection;
+    }
+
+
 }
