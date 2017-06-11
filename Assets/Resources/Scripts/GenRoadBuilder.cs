@@ -4,6 +4,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
+public enum Direction
+{
+    RIGHT,
+    UP,
+    LEFT,
+    DOWN,
+    NO_DIRECTION
+};
+
 public class GenRoadBuilder : MonoBehaviour
 {
     private const int X = 0;
@@ -16,6 +25,7 @@ public class GenRoadBuilder : MonoBehaviour
     private int[] currentPos;
     private int[] endPos;
 
+    private Direction previousDirection = Direction.NO_DIRECTION;
     public int maxRoadBlocks;
     private int population = 0;
     public GameObject mapGO;
@@ -57,9 +67,12 @@ public class GenRoadBuilder : MonoBehaviour
                 if (nodeNeighbours.Count > 0)
                 {
                     Node selectedNode = findRandomNode(nodeNeighbours);
-                    currentPos = findNodeCoordinates(selectedNode.GetComponent<Node>());
+                    Direction nextDirection = getDirectionOfNextNode( selectedNode );
+                    setMaterialFromNextDirection(nextDirection);
+                    previousDirection = nextDirection;
+                    currentPos = selectedNode.GetComponent<Node>().getCoordinates();
                     addBlockAtCurrentPos();
-                    yield return new WaitForSeconds(0.001f);
+                    yield return new WaitForSeconds(0.2f);
                 }
                 else
                 {
@@ -73,10 +86,9 @@ public class GenRoadBuilder : MonoBehaviour
             destroyRoad();
         }
     }
-
     private void setUpStartCoordinates()
     {
-        startPos = findNodeCoordinates(start.GetComponent<Node>());
+        startPos = start.GetComponent<Node>().getCoordinates();
         currentPos = startPos;
     }
     private void addBlock(int x, int y)
@@ -100,16 +112,16 @@ public class GenRoadBuilder : MonoBehaviour
         List<Node> neighbours = new List<Node>();
 
         if (findLeftNode(x, y) != null)
-            neighbours.Add(findLeftNode(x, y) );
+            neighbours.Add(findLeftNode(x, y));
 
         if (findTopNode(x, y) != null)
-            neighbours.Add(findTopNode(x, y) );
+            neighbours.Add(findTopNode(x, y));
 
         if (findRightNode(x, y) != null)
-            neighbours.Add(findRightNode(x, y) );
+            neighbours.Add(findRightNode(x, y));
 
         if (findBottomNode(x, y) != null)
-            neighbours.Add(findBottomNode(x, y) );
+            neighbours.Add(findBottomNode(x, y));
 
         return neighbours;
     }
@@ -179,10 +191,6 @@ public class GenRoadBuilder : MonoBehaviour
         Node selectedNode = nodes[randomIndex];
         return selectedNode;
     }
-    private int[] findNodeCoordinates(Node node)
-    {
-        return new int[2] { Convert.ToInt32(node.transform.position.x / 4.5f), Convert.ToInt32(node.transform.position.z / 4.5f) };
-    }
     private void destroyRoad()
     {
         var roadBlocks = GameObject.FindGameObjectsWithTag("Road");
@@ -203,5 +211,80 @@ public class GenRoadBuilder : MonoBehaviour
         Text populationText = populationGO.GetComponent<Text>();
         populationText.text = population.ToString();
     }
+    private Direction getDirectionOfNextNode(Node nextNode)
+    {
+        int[] nextCoordinates;
+        Direction directionOfNextNode = Direction.NO_DIRECTION;
 
+        nextCoordinates = nextNode.getCoordinates();
+
+        int differenceX = nextCoordinates[X] - currentPos[X];
+        int differenceY = nextCoordinates[Y] - currentPos[Y];
+
+        if (differenceX == 1)
+            directionOfNextNode = Direction.RIGHT;
+        else if (differenceX == -1)
+            directionOfNextNode = Direction.LEFT;
+        else if (differenceY == 1)
+            directionOfNextNode = Direction.UP;
+        else if (differenceY == -1)
+            directionOfNextNode = Direction.DOWN;
+
+        return directionOfNextNode;
+    }
+
+    private void setMaterialFromNextDirection(Direction nextDirection)
+    {
+        Material material;
+
+        if (previousDirection == nextDirection)
+        {
+            material = Resources.Load("Materials/Straight", typeof(Material)) as Material;
+            road[currentPos[X], currentPos[Y]].GetComponent<Renderer>().material = material;
+
+            if (nextDirection == Direction.UP || nextDirection == Direction.DOWN)
+                rotateRoadAtCurrentPos(90);
+
+        }
+        else
+        {
+            material = Resources.Load("Materials/Turn", typeof(Material)) as Material;
+            road[currentPos[X], currentPos[Y]].GetComponent<Renderer>().material = material;
+
+            if (previousDirection == Direction.LEFT)
+            {
+                if (nextDirection == Direction.DOWN)
+                    rotateRoadAtCurrentPos(90);
+                else if (nextDirection == Direction.UP)
+                    rotateRoadAtCurrentPos(0);
+            }
+            else if (previousDirection == Direction.UP)
+            {
+                if (nextDirection == Direction.LEFT)
+                    rotateRoadAtCurrentPos(180);
+                else if (nextDirection == Direction.RIGHT)
+                    rotateRoadAtCurrentPos(90);
+            }
+            else if (previousDirection == Direction.RIGHT)
+            {
+                if (nextDirection == Direction.UP)
+                    rotateRoadAtCurrentPos(-90);
+                else if (nextDirection == Direction.DOWN)
+                    rotateRoadAtCurrentPos(180);
+            }
+            else if (previousDirection == Direction.DOWN)
+            {
+                if (nextDirection == Direction.RIGHT)
+                    rotateRoadAtCurrentPos(0);
+                else if (nextDirection == Direction.LEFT)
+                    rotateRoadAtCurrentPos(-90);
+            }
+        }
+
+    }
+
+    public void rotateRoadAtCurrentPos(int degrees)
+    {
+        road[currentPos[X], currentPos[Y]].transform.Rotate(new Vector3(0, degrees, 0));
+    }
 }
