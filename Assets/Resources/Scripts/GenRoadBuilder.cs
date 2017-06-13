@@ -18,9 +18,11 @@ public class GenRoadBuilder : MonoBehaviour
 {
     private const int X = 0;
     private const int Y = 1;
+    private const int NUMBER_OF_ROADS_IN_GENERATION = 100;
 
     private GameObject start;
     private GameObject end;
+    private Incubator incubator;
 
     private int[] startPos;
     private int[] currentPos;
@@ -39,13 +41,25 @@ public class GenRoadBuilder : MonoBehaviour
     {
         start = GameObject.FindGameObjectWithTag("Start");
         end = GameObject.FindGameObjectWithTag("End");
-
         map = mapGO.GetComponent<Map>();
+        incubator = GameObject.Find("Incubator").GetComponent<Incubator>();
+        
+        for (int i = 0; i < NUMBER_OF_ROADS_IN_GENERATION; i++)
+        {
+            GameObject roadGO = new GameObject();
+            road = roadGO.AddComponent<Road>();
+            road.setGridSize(map.length, map.width);
 
-        road = new Road(map.length, map.width);
+            //StartCoroutine(BuildRoad());
+            BuildRoad();
 
-        StartCoroutine(BuildRoad());
-        BuildRoad();
+            incubator.addRoadToIncubator(road);
+
+            Debug.Log(road.getRoadLength());
+            population++;
+            showPopulation();
+            destroyRoad();
+        }
     }
 
     // Update is called once per frame
@@ -54,40 +68,30 @@ public class GenRoadBuilder : MonoBehaviour
 
     }
 
-    public IEnumerator BuildRoad()
+    public void BuildRoad()
     {
-        while (true)
+        setUpStartCoordinates(); // Sets up current position at the start positon
+        addBlockAtCurrentPos(); // Creating the block at starting position
+
+        for (int i = 0; i < maxRoadBlocks + 1; i++) // Maximum road blocks to build are set in editor
         {
-            setUpStartCoordinates(); // Sets up current position at the start positon
-            addBlockAtCurrentPos(); // Creating the block at starting position
+            List<Node> nodeNeighbours = findNodeNeighboursOfCurrentPos();
 
-            for (int i = 0; i < maxRoadBlocks + 1; i++) // Maximum road blocks to build are set in editor
+            if (nodeNeighbours.Count > 0)
             {
-                List<Node> nodeNeighbours = findNodeNeighboursOfCurrentPos();
+                Node selectedNode = findRandomNode(nodeNeighbours);
 
-                if (nodeNeighbours.Count > 0)
-                {
-                    Node selectedNode = findRandomNode(nodeNeighbours);
+                handleCurrentBlockDrawingAccordingToNextDirection(selectedNode);
 
-                    handleCurrentBlockDrawingAccordingToNextDirection(selectedNode); 
+                currentPos = selectedNode.GetComponent<Node>().getCoordinates();
+                addBlockAtCurrentPos();
 
-                    currentPos = selectedNode.GetComponent<Node>().getCoordinates();
-                    addBlockAtCurrentPos();
-
-                    yield return new WaitForSeconds(0.2f);
-                }
-                else
-                {
-                    destroyRoad();
-                    i = maxRoadBlocks + 1;
-                }
+               // yield return new WaitForSeconds(0.2f);
             }
-
-            Debug.Log(road.getRoadLength());
-            population++;
-            showPopulation();
-            destroyRoad();
+            else
+                i = maxRoadBlocks + 1;
         }
+
     }
 
     private void setUpStartCoordinates()
@@ -106,7 +110,7 @@ public class GenRoadBuilder : MonoBehaviour
     }
     private void addBlockAtCurrentPos()
     {
-        addBlock(currentPos[X], currentPos[Y]); 
+        addBlock(currentPos[X], currentPos[Y]);
     }
     private bool nodeIsEmpty(int x, int y)
     {
@@ -132,7 +136,7 @@ public class GenRoadBuilder : MonoBehaviour
     }
     private List<Node> findNodeNeighboursOfCurrentPos()
     {
-       return findNodeNeighbours(currentPos[X], currentPos[Y]);
+        return findNodeNeighbours(currentPos[X], currentPos[Y]);
     }
     private Node findLeftNode(int x, int y)
     {
@@ -291,7 +295,7 @@ public class GenRoadBuilder : MonoBehaviour
         road.RoadBlocks[currentPos[X], currentPos[Y]].transform.Rotate(new Vector3(0, degrees, 0));
     }
     public void handleCurrentBlockDrawingAccordingToNextDirection(Node nextNode)
-    { 
+    {
         Direction nextDirection = getDirectionOfNextNode(nextNode);
         setMaterialFromNextDirection(nextDirection);
         previousDirection = nextDirection;

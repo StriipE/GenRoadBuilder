@@ -14,6 +14,10 @@ namespace Assets.Resources.Scripts
 
         public Road(int length, int width)
         {
+        }
+
+        public void setGridSize(int length, int width)
+        {
             roadBlocks = new GameObject[length, width];
         }
         public GameObject[,] RoadBlocks { get { return roadBlocks; } set { roadBlocks = value; } }

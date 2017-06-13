@@ -2,12 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace Assets.Resources.Scripts
 {
-    public class Incubator
+    public class Incubator : MonoBehaviour
     {
-        private List<Road> generatedRoads;
+        public List<Road> generatedRoads;
+
+        public Incubator()
+        {
+            generatedRoads = new List<Road>();
+        }
 
         public void addRoadToIncubator(Road road)
         {
