@@ -25,16 +25,21 @@ public class RoadRenderer : MonoBehaviour
     {
         Road road = GameObject.Find("Road 1").GetComponent<Road>();
         currentPos = new int[] { road.RoadBlocks[0][X], road.RoadBlocks[0][Y] };
+        currentNode = (GameObject)Instantiate(Resources.Load(@"Prefabs/Road"), 
+                        new Vector3(4.5f * road.RoadBlocks[0][X], 0.5f, 4.5f * road.RoadBlocks[0][Y]), Quaternion.identity);
 
         for (int i = 0; i < road.RoadBlocks.Count; i++)
         {
             int x = road.RoadBlocks[i][X];
-            int y = road.RoadBlocks[i][Y];
-            currentNode = (GameObject)Instantiate(Resources.Load(@"Prefabs/Road"), new Vector3(4.5f * x, 0.5f, 4.5f * y), Quaternion.identity);
+            int y = road.RoadBlocks[i][Y];            
             int[] nextCoordinates = new int[] { x, y };
+
             renderMaterialOnNextNode(nextCoordinates);
+            currentNode = (GameObject)Instantiate(Resources.Load(@"Prefabs/Road"), new Vector3(4.5f * x, 0.5f, 4.5f * y), Quaternion.identity);
             currentPos = nextCoordinates;
         }
+
+        renderMaterialOnNextNode(currentPos);
     }
 
     // Compares the next coordinates and the current block coordinates to find the next direction

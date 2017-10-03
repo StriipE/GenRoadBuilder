@@ -13,6 +13,7 @@ public class GenRoadBuilder : MonoBehaviour
 
     private GameObject start;
     private GameObject end;
+    private UI UI;
     private Incubator incubator;
 
     private int[] startPos;
@@ -20,7 +21,7 @@ public class GenRoadBuilder : MonoBehaviour
     private int[] endPos;
 
     public int maxRoadBlocks;
-    private int population = 0;
+    public int population = 0;
     public GameObject mapGO;
     private Map map;
 
@@ -33,6 +34,7 @@ public class GenRoadBuilder : MonoBehaviour
         end = GameObject.FindGameObjectWithTag("End");
         map = mapGO.GetComponent<Map>();
         incubator = GameObject.Find("Incubator").GetComponent<Incubator>();
+        UI = GameObject.Find("Canvas").GetComponent<UI>();
         
         for (int i = 0; i < NUMBER_OF_ROADS_IN_GENERATION; i++)
         {
@@ -45,10 +47,11 @@ public class GenRoadBuilder : MonoBehaviour
             incubator.addRoadToIncubator(road);
 
             population++;
-            showPopulation();
+            UI.showPopulation(population);
 
             resetMapStates();
         }
+        UI.showListOfRoads();
     }
 
     public void BuildRoad()
@@ -180,10 +183,6 @@ public class GenRoadBuilder : MonoBehaviour
         Node selectedNode = nodes[randomIndex];
         return selectedNode;
     }
-    private void showRoad(Road road)
-    {
-
-    }
     private void resetMapStates()
     {
 
@@ -192,12 +191,6 @@ public class GenRoadBuilder : MonoBehaviour
             Node node = nodeGO.GetComponent<Node>();
             node.freeNode();
         }
-    }
-    public void showPopulation()
-    {
-        GameObject populationGO = GameObject.Find("Population");
-        Text populationText = populationGO.GetComponent<Text>();
-        populationText.text = population.ToString();
     }
 
 }
