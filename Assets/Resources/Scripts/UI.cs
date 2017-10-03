@@ -5,6 +5,12 @@ public class UI : MonoBehaviour
 {
     private const int VERTICAL_BUTTON_OFFSET = -32;
     private const int FIRST_BUTTON_OFFSET = 16;
+    private RoadRenderer roadRenderer;
+
+    public void Awake()
+    {
+        roadRenderer = GameObject.Find("RoadRenderer").GetComponent<RoadRenderer>();
+    }
 
     public void showPopulation(int population)
     {
@@ -32,6 +38,7 @@ public class UI : MonoBehaviour
             SVButtonGO.transform.GetChild(0).GetComponent<Text>().text = road.gameObject.name;
             SVButtonGO.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 1f);
             SVButtonGO.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 1f);
+            SVButtonGO.GetComponent<Button>().onClick.AddListener(() => { roadRenderer.renderRoad(road); } );
 
             SVButtonGO.transform.SetParent(mapsSV.transform, false);
         }

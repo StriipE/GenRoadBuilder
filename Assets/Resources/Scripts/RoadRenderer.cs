@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.EventSystems;
 
 public enum Direction
 {
@@ -21,12 +20,16 @@ public class RoadRenderer : MonoBehaviour
     private GameObject currentNode;
 
     // TODO : RenderRoad has to render a block according to the previous block
-    public void renderRoad()
+    public void renderRoad(Road road)
     {
-        Road road = GameObject.Find("Road 1").GetComponent<Road>();
+        destroyOldRenderedRoad();
+
+        GameObject roadBlocksHandler = new GameObject("RenderedRoad");
+
         currentPos = new int[] { road.RoadBlocks[0][X], road.RoadBlocks[0][Y] };
         currentNode = (GameObject)Instantiate(Resources.Load(@"Prefabs/Road"), 
                         new Vector3(4.5f * road.RoadBlocks[0][X], 0.5f, 4.5f * road.RoadBlocks[0][Y]), Quaternion.identity);
+        currentNode.transform.SetParent(roadBlocksHandler.transform);
 
         for (int i = 0; i < road.RoadBlocks.Count; i++)
         {
@@ -36,12 +39,18 @@ public class RoadRenderer : MonoBehaviour
 
             renderMaterialOnNextNode(nextCoordinates);
             currentNode = (GameObject)Instantiate(Resources.Load(@"Prefabs/Road"), new Vector3(4.5f * x, 0.5f, 4.5f * y), Quaternion.identity);
+            currentNode.transform.SetParent(roadBlocksHandler.transform);
             currentPos = nextCoordinates;
         }
 
         renderMaterialOnNextNode(currentPos);
     }
 
+    private void destroyOldRenderedRoad()
+    {
+        if ( GameObject.Find("RenderedRoad") != null )
+            Destroy(GameObject.Find("RenderedRoad"));
+    }
     // Compares the next coordinates and the current block coordinates to find the next direction
     private Direction getDirectionOfNextNode(int[] nextCoordinates)
     {
@@ -111,6 +120,7 @@ public class RoadRenderer : MonoBehaviour
         }
 
     }
+
     public void rotateRoadAtCurrentPos(int degrees)
     {
         currentNode.transform.Rotate(new Vector3(0, degrees, 0));
