@@ -16,6 +16,7 @@ public class GenRoadBuilder : MonoBehaviour
     private UI UI;
     private Incubator incubator;
 
+
     private int[] startPos;
     private int[] currentPos;
     private int[] endPos;
@@ -35,7 +36,8 @@ public class GenRoadBuilder : MonoBehaviour
         map = mapGO.GetComponent<Map>();
         incubator = GameObject.Find("Incubator").GetComponent<Incubator>();
         UI = GameObject.Find("Canvas").GetComponent<UI>();
-        
+
+
         for (int i = 0; i < NUMBER_OF_ROADS_IN_GENERATION; i++)
         {
             GameObject roadGO = new GameObject("Road " + (i+1).ToString());

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 public class Map : MonoBehaviour {
 
@@ -6,7 +7,9 @@ public class Map : MonoBehaviour {
     public int length;
 
     public GameObject[ , ] map;
-
+    public GameObject startBlock { get; set; }
+    public GameObject endBlock { get; set; }
+    public List<GameObject> checkpoints;
   
     // Use this for initialization
     void Awake () {
@@ -34,16 +37,19 @@ public class Map : MonoBehaviour {
     {
         Destroy(map[xPos, yPos]);
         map[xPos, yPos] = (GameObject)Instantiate(Resources.Load(@"Prefabs/Start"), new Vector3(4.5f * xPos, 0, 4.5f * yPos), Quaternion.identity);
+        startBlock = map[xPos, yPos];
     }
     private void addEndBlock(int xPos, int yPos)
     {
         Destroy(map[xPos, yPos]);
         map[xPos, yPos] = (GameObject)Instantiate(Resources.Load(@"Prefabs/End"), new Vector3(4.5f * xPos, 0, 4.5f * yPos), Quaternion.identity);
+        endBlock = map[xPos, yPos];
     }
     private void addCheckpointBlock(int xPos, int yPos)
     {
         Destroy(map[xPos, yPos]);
         map[xPos, yPos] = (GameObject)Instantiate(Resources.Load(@"Prefabs/Checkpoint"), new Vector3(4.5f * xPos, 0, 4.5f * yPos), Quaternion.identity);
+        checkpoints.Add(map[xPos, yPos]);
     }
     
     // Update is called once per frame

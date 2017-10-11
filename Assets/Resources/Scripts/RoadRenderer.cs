@@ -18,7 +18,12 @@ public class RoadRenderer : MonoBehaviour
     private Direction previousDirection = Direction.NO_DIRECTION;
     private int[] currentPos;
     private GameObject currentNode;
+    private Evaluator evaluator;
 
+    private void Awake()
+    {
+        evaluator = GameObject.Find("Evaluator").GetComponent<Evaluator>();
+    }
     // TODO : RenderRoad has to render a block according to the previous block
     public void renderRoad(Road road)
     {
@@ -44,6 +49,9 @@ public class RoadRenderer : MonoBehaviour
         }
 
         renderMaterialOnNextNode(currentPos);
+        int roadScore = evaluator.evaluateRoad(road);
+
+        Debug.Log(roadScore);
     }
 
     private void destroyOldRenderedRoad()
