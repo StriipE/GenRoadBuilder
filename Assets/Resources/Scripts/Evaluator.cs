@@ -19,7 +19,9 @@ public class Evaluator : MonoBehaviour {
 
         foreach (int[] position in road.RoadBlocks)
         {
-           score += calculateDistanceToEnd(position);
+            score -= calculateDistanceToEnd(position);
+            if (isCheckpoint(position))
+                score += 1000;
         }
 
 
@@ -28,10 +30,18 @@ public class Evaluator : MonoBehaviour {
 
     private int[] getBlockCoordinates(GameObject block)
     {
-        int[] coordinates = new int[2];
+        return new int[2] { Convert.ToInt32(block.transform.position.x / 4.5f), Convert.ToInt32(block.transform.position.z / 4.5f) };
+    }
 
+    private bool isCheckpoint(int[] position)
+    {
+        foreach (GameObject checkpoint in map.checkpoints)
+        {
+            if (getBlockCoordinates(checkpoint) == position)
+                return true;
+        }
 
-        return coordinates;
+        return false;
     }
     private int calculateDistanceToEnd(int[] position)
     {
